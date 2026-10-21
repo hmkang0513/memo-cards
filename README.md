@@ -11,3 +11,6 @@
 ./gradlew assembleDebug
 ```
 JDK 17, Android SDK(`ANDROID_HOME`)가 필요하다. 도구는 `D:\drive\tools`에 설치해 사용한다.
+
+## 글꼴
+손글씨 제목 글꼴은 Gaegu Bold (SIL Open Font License 1.1)이다. 라이선스 원문은 `docs/OFL-Gaegu.txt`.

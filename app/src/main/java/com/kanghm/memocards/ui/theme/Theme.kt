@@ -25,7 +25,7 @@ private val LightColors = lightColorScheme(
     onTertiary = Color(0xFFFFFFFF),
     tertiaryContainer = Color(0xFFFFE5CC),
     onTertiaryContainer = Color(0xFF4A2800),
-    background = Color(0xFFFFF8F5),
+    background = Color.Transparent, // 종이 배경(paperBackground)이 비치도록 투명
     onBackground = Color(0xFF3B2B30),
     surface = Color(0xFFFFF8F5),
     onSurface = Color(0xFF3B2B30),
@@ -52,7 +52,7 @@ private val DarkColors = darkColorScheme(
     onTertiary = Color(0xFF4A2800),
     tertiaryContainer = Color(0xFF6A4318),
     onTertiaryContainer = Color(0xFFFFE5CC),
-    background = Color(0xFF201519),
+    background = Color.Transparent,
     onBackground = Color(0xFFF3DFE5),
     surface = Color(0xFF201519),
     onSurface = Color(0xFFF3DFE5),
@@ -79,6 +79,7 @@ fun MemoTheme(content: @Composable () -> Unit) {
     MaterialTheme(
         colorScheme = if (isSystemInDarkTheme()) DarkColors else LightColors,
         shapes = CuteShapes,
+        typography = MemoTypography,
         content = content,
     )
 }

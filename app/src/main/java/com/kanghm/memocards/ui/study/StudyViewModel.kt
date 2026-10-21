@@ -6,12 +6,15 @@ import androidx.lifecycle.viewModelScope
 import com.kanghm.memocards.MemoApp
 import com.kanghm.memocards.data.CardWithProgress
 import com.kanghm.memocards.data.FrontSide
+import com.kanghm.memocards.data.Stats
 import com.kanghm.memocards.domain.ReviewMode
 import com.kanghm.memocards.domain.Scheduler
 import com.kanghm.memocards.domain.StudyQueue
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 data class StudyUiState(
@@ -28,6 +31,10 @@ data class StudyUiState(
     val sessionUnknown: Int = 0,
     /** 마지막 응답. 카드가 넘어가는 방향을 정한다. */
     val lastAnswerKnown: Boolean = true,
+    /** 알고있음을 연속으로 누른 횟수. 마스코트 반응에 쓴다. */
+    val combo: Int = 0,
+    /** 맨 위 카드 뒤에 겹쳐 보일 다음 카드들(최대 2장). */
+    val upcoming: List<CardWithProgress> = emptyList(),
     val frontSide: FrontSide = FrontSide.TERM,
     /** 한 번 보여줄 안내(스낵바용). */
     val notice: String? = null,
@@ -44,6 +51,10 @@ class StudyViewModel(app: Application, private val deckId: Long) : AndroidViewMo
     private val queue = ArrayDeque<CardWithProgress>()
     private val _state = MutableStateFlow(StudyUiState(frontSide = settings.frontSide))
     val state: StateFlow<StudyUiState> = _state.asStateFlow()
+
+    /** 마스코트 성장 단계와 완료 화면에 쓰는 학습 통계. */
+    val stats: StateFlow<Stats> = repository.observeStats()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), Stats())
 
     init {
         viewModelScope.launch { start() }
@@ -98,6 +109,7 @@ class StudyViewModel(app: Application, private val deckId: Long) : AndroidViewMo
             sessionKnown = s.sessionKnown + if (known) 1 else 0,
             sessionUnknown = s.sessionUnknown + if (known) 0 else 1,
             lastAnswerKnown = known,
+            combo = if (known) s.combo + 1 else 0,
         ).withHead()
         viewModelScope.launch {
             repository.saveProgress(updated)
@@ -126,12 +138,14 @@ class StudyViewModel(app: Application, private val deckId: Long) : AndroidViewMo
                 sessionKnown = 0,
                 sessionUnknown = 0,
                 lastAnswerKnown = true,
+                combo = 0,
             ).withHead()
         }
     }
 
     private fun StudyUiState.withHead() = copy(
         current = queue.firstOrNull(),
+        upcoming = queue.drop(1).take(2),
         remaining = queue.size,
         finished = queue.isEmpty() && !loading,
     )
