@@ -27,9 +27,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
@@ -63,6 +60,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
@@ -185,12 +183,7 @@ private fun FinishedView(state: StudyUiState, onRestart: () -> Unit, onHome: () 
             visible = shown,
             enter = scaleIn(spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow)) + fadeIn(),
         ) {
-            Icon(
-                Icons.Filled.CheckCircle,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(96.dp),
-            )
+            Text(if (doneSomething) "🎉" else "🌙", fontSize = 88.sp)
         }
         Box(Modifier.height(16.dp))
         AnimatedVisibility(visible = shown, enter = fadeIn(tween(500, delayMillis = 200))) {
@@ -330,13 +323,7 @@ private fun CardContent(
             modifier = Modifier.align(Alignment.Center),
             enter = scaleIn(spring(dampingRatio = Spring.DampingRatioMediumBouncy)) + fadeIn(tween(100)),
         ) {
-            val known = result == true
-            Icon(
-                if (known) Icons.Filled.Check else Icons.Filled.Close,
-                contentDescription = if (known) "알고있음" else "모름",
-                tint = if (known) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
-                modifier = Modifier.size(112.dp),
-            )
+            Text(if (result == true) "😆" else "😢", fontSize = 88.sp)
         }
         }
         Text(
@@ -358,7 +345,7 @@ private fun CardContent(
                 selected = result == true,
                 onClick = { submit(true) },
                 modifier = Modifier.weight(1f),
-                colors = ButtonDefaults.buttonColors(),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
             )
         }
     }

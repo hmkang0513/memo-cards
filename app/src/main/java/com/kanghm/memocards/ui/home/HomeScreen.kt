@@ -21,6 +21,7 @@ import androidx.compose.material.icons.filled.FileUpload
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -39,7 +40,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kanghm.memocards.data.DeckSummary
@@ -75,7 +79,7 @@ fun HomeScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("암기카드") },
+                title = { Text("🐰 암기카드", fontWeight = FontWeight.Bold) },
                 actions = {
                     IconButton(onClick = { importLauncher.launch(arrayOf("application/json", "text/*", "*/*")) }) {
                         Icon(Icons.Filled.FileUpload, contentDescription = "카드 JSON 가져오기")
@@ -93,10 +97,15 @@ fun HomeScreen(
     ) { padding ->
         if (decks.isEmpty()) {
             Box(Modifier.fillMaxSize().padding(padding).padding(24.dp), contentAlignment = Alignment.Center) {
-                Text(
-                    "아직 카드가 없어요.\n위쪽 가져오기 버튼으로 카드 JSON 파일을 불러오세요.",
-                    style = MaterialTheme.typography.bodyLarge,
-                )
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("🐣", fontSize = 64.sp)
+                    Text(
+                        "아직 카드가 없어요.\n위쪽 가져오기 버튼으로 카드 JSON 파일을 불러오세요.",
+                        style = MaterialTheme.typography.bodyLarge,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(top = 12.dp),
+                    )
+                }
             }
         } else {
             LazyColumn(
@@ -134,13 +143,25 @@ fun HomeScreen(
 
 @Composable
 private fun DeckItem(deck: DeckSummary, onClick: () -> Unit, onList: () -> Unit, onDelete: () -> Unit) {
-    Card(modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)) {
+    // 덱마다 이모지와 파스텔 색을 돌려가며 입힌다. 덱 id로 정해서 항상 같은 모습이다.
+    val scheme = MaterialTheme.colorScheme
+    val emoji = DECK_EMOJIS[(deck.id % DECK_EMOJIS.size).toInt()]
+    val container = when ((deck.id % 3).toInt()) {
+        0 -> scheme.primaryContainer
+        1 -> scheme.secondaryContainer
+        else -> scheme.tertiaryContainer
+    }
+    Card(
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
+        colors = CardDefaults.cardColors(containerColor = container),
+    ) {
         Row(
-            modifier = Modifier.padding(start = 16.dp, top = 8.dp, bottom = 8.dp, end = 4.dp),
+            modifier = Modifier.padding(start = 16.dp, top = 12.dp, bottom = 12.dp, end = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            Text(emoji, fontSize = 36.sp, modifier = Modifier.padding(end = 12.dp))
             Column(Modifier.weight(1f)) {
-                Text(deck.name, style = MaterialTheme.typography.titleMedium)
+                Text(deck.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                 Text(
                     "카드 ${deck.total}장 · 복습 ${deck.due} · 모름 ${deck.unknown}",
                     style = MaterialTheme.typography.bodyMedium,
@@ -152,3 +173,5 @@ private fun DeckItem(deck: DeckSummary, onClick: () -> Unit, onList: () -> Unit,
         }
     }
 }
+
+private val DECK_EMOJIS = listOf("🐰", "🐻", "🐱", "🐥", "🍓", "🍑", "🌸", "🍀")
