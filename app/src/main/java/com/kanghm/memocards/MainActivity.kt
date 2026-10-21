@@ -11,10 +11,13 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import androidx.navigation.compose.rememberNavController
 import com.kanghm.memocards.ui.home.HomeScreen
+import com.kanghm.memocards.ui.study.StudyScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -42,9 +45,12 @@ private fun MemoTheme(content: @Composable () -> Unit) {
 private fun MemoNavHost() {
     val nav = rememberNavController()
     NavHost(navController = nav, startDestination = "home") {
+        composable("study/{deckId}", arguments = listOf(navArgument("deckId") { type = NavType.LongType })) {
+            StudyScreen(deckId = it.arguments!!.getLong("deckId"), onBack = { nav.popBackStack() })
+        }
         composable("home") {
             HomeScreen(
-                onStudy = { },
+                onStudy = { nav.navigate("study/$it") },
                 onCardList = { },
                 onSettings = { },
             )
