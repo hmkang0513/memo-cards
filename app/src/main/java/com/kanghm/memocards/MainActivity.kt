@@ -16,6 +16,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import androidx.navigation.compose.rememberNavController
+import com.kanghm.memocards.ui.cards.CardListScreen
 import com.kanghm.memocards.ui.home.HomeScreen
 import com.kanghm.memocards.ui.study.StudyScreen
 
@@ -48,10 +49,13 @@ private fun MemoNavHost() {
         composable("study/{deckId}", arguments = listOf(navArgument("deckId") { type = NavType.LongType })) {
             StudyScreen(deckId = it.arguments!!.getLong("deckId"), onBack = { nav.popBackStack() })
         }
+        composable("cards/{deckId}", arguments = listOf(navArgument("deckId") { type = NavType.LongType })) {
+            CardListScreen(deckId = it.arguments!!.getLong("deckId"), onBack = { nav.popBackStack() })
+        }
         composable("home") {
             HomeScreen(
                 onStudy = { nav.navigate("study/$it") },
-                onCardList = { },
+                onCardList = { nav.navigate("cards/$it") },
                 onSettings = { },
             )
         }
