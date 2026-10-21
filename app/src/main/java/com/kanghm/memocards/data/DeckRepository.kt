@@ -1,7 +1,10 @@
 package com.kanghm.memocards.data
 
 import androidx.room.withTransaction
+import com.kanghm.memocards.domain.Streak
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
+import java.time.LocalDate
 
 /** 가져오기 결과 요약. */
 data class ImportResult(val decks: Int, val added: Int, val updated: Int)
@@ -9,6 +12,7 @@ data class ImportResult(val decks: Int, val added: Int, val updated: Int)
 class DeckRepository(private val db: AppDatabase) {
     private val deckDao = db.deckDao()
     private val cardDao = db.cardDao()
+    private val statsDao = db.statsDao()
 
     fun observeSummaries(now: Long): Flow<List<DeckSummary>> = deckDao.observeSummaries(now)
 
@@ -23,6 +27,27 @@ class DeckRepository(private val db: AppDatabase) {
     suspend fun saveProgress(progress: ProgressEntity) = cardDao.updateProgress(progress)
 
     suspend fun resetRound(deckId: Long) = cardDao.resetRound(deckId)
+
+    /** 오늘 기록에 응답 1회를 더한다. */
+    suspend fun recordAnswer(known: Boolean, today: LocalDate = LocalDate.now()) {
+        val date = today.toString()
+        statsDao.ensureDay(DailyStatEntity(date))
+        statsDao.addAnswer(date, if (known) 1 else 0)
+    }
+
+    /** 연속 학습일, 오늘 진행량, 누적 알고있음 수. 응답할 때마다 새 값이 나온다. */
+    fun observeStats(today: LocalDate = LocalDate.now()): Flow<Stats> =
+        combine(statsDao.observeDays(), statsDao.observeTotalKnown()) { days, totalKnown ->
+            val studied = days.filter { it.answered > 0 }.map { LocalDate.parse(it.date) }.toSet()
+            val todayRow = days.firstOrNull { it.date == today.toString() }
+            Stats(
+                streak = Streak.count(studied, today),
+                todayAnswered = todayRow?.answered ?: 0,
+                todayKnown = todayRow?.known ?: 0,
+                totalKnown = totalKnown,
+                daysStudied = studied.size,
+            )
+        }
 
     /**
      * JSON 텍스트를 가져온다. uid가 이미 있으면 내용(앞면/뒷면 등)만 갱신하고 진행 기록은 그대로 둔다.

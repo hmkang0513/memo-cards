@@ -99,7 +99,10 @@ class StudyViewModel(app: Application, private val deckId: Long) : AndroidViewMo
             sessionUnknown = s.sessionUnknown + if (known) 0 else 1,
             lastAnswerKnown = known,
         ).withHead()
-        viewModelScope.launch { repository.saveProgress(updated) }
+        viewModelScope.launch {
+            repository.saveProgress(updated)
+            repository.recordAnswer(known)
+        }
     }
 
     /**

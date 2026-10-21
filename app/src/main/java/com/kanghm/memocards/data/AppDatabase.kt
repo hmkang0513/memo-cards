@@ -1,18 +1,22 @@
 package com.kanghm.memocards.data
 
 import android.content.Context
+import androidx.room.AutoMigration
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 
 @Database(
-    entities = [DeckEntity::class, CardEntity::class, ProgressEntity::class],
-    version = 1,
+    entities = [DeckEntity::class, CardEntity::class, ProgressEntity::class, DailyStatEntity::class],
+    version = 2,
     exportSchema = true,
+    // 1 → 2: daily_stats 테이블 추가. 기존 덱·카드·진행 기록은 그대로 유지된다.
+    autoMigrations = [AutoMigration(from = 1, to = 2)],
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun deckDao(): DeckDao
     abstract fun cardDao(): CardDao
+    abstract fun statsDao(): StatsDao
 
     companion object {
         @Volatile private var instance: AppDatabase? = null
