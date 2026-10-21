@@ -3,6 +3,7 @@ package com.kanghm.memocards.ui.study
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
@@ -13,6 +14,8 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,10 +27,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -51,7 +58,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -60,6 +69,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.kanghm.memocards.data.CardWithProgress
 import com.kanghm.memocards.data.FrontSide
+import kotlinx.coroutines.delay
 
 /** 카드 전환 애니메이션의 단위. 응답할 때마다 seq가 달라져, 같은 카드가 다시 나와도 새로 넘어간다. */
 private data class Slot(val card: CardWithProgress, val seq: Int)
@@ -227,6 +237,31 @@ private fun CardContent(
         label = "flip",
     )
 
+    // 응답을 누르면 색·아이콘·진동으로 먼저 보여주고, 잠깐 뒤에 실제 응답을 넘겨 카드가 넘어가게 한다.
+    var result by remember(seq) { mutableStateOf<Boolean?>(null) }
+    val haptic = LocalHapticFeedback.current
+    LaunchedEffect(result) {
+        result?.let {
+            delay(ANSWER_FEEDBACK_MS)
+            onAnswer(it)
+        }
+    }
+    val submit: (Boolean) -> Unit = { known ->
+        if (result == null) {
+            result = known
+            haptic.performHapticFeedback(if (known) HapticFeedbackType.TextHandleMove else HapticFeedbackType.LongPress)
+        }
+    }
+    val cardColor by animateColorAsState(
+        targetValue = when (result) {
+            true -> MaterialTheme.colorScheme.primaryContainer
+            false -> MaterialTheme.colorScheme.errorContainer
+            null -> MaterialTheme.colorScheme.surfaceContainerHighest
+        },
+        animationSpec = tween(150),
+        label = "cardColor",
+    )
+
     val c = card.card
     // 앞면 선택에 따라 단어/뜻 중 먼저 보이는 쪽이 달라진다. 읽기(후리가나)는 단어와 함께 보인다.
     val termFirst = frontSide == FrontSide.TERM
@@ -234,15 +269,16 @@ private fun CardContent(
     val hidden = if (termFirst) c.back else c.front
 
     Column(Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Box(Modifier.weight(1f).fillMaxWidth()) {
         Card(
             Modifier
-                .weight(1f)
-                .fillMaxWidth()
+                .fillMaxSize()
                 .graphicsLayer {
                     rotationY = rotation
                     cameraDistance = 12f * density
                 }
                 .clickable { flipped = !flipped },
+            colors = CardDefaults.cardColors(containerColor = cardColor),
         ) {
             if (rotation <= 90f) {
                 // 앞면
@@ -288,6 +324,21 @@ private fun CardContent(
                 }
             }
         }
+        // 응답 결과 아이콘: 카드 위에 튀어나온다. 카드와 달리 회전하지 않는다.
+        androidx.compose.animation.AnimatedVisibility(
+            visible = result != null,
+            modifier = Modifier.align(Alignment.Center),
+            enter = scaleIn(spring(dampingRatio = Spring.DampingRatioMediumBouncy)) + fadeIn(tween(100)),
+        ) {
+            val known = result == true
+            Icon(
+                if (known) Icons.Filled.Check else Icons.Filled.Close,
+                contentDescription = if (known) "알고있음" else "모름",
+                tint = if (known) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+                modifier = Modifier.size(112.dp),
+            )
+        }
+        }
         Text(
             "알고있음 ${card.progress.knownCount}회 · 모름 ${card.progress.unknownCount}회",
             style = MaterialTheme.typography.bodySmall,
@@ -295,15 +346,53 @@ private fun CardContent(
             modifier = Modifier.align(Alignment.CenterHorizontally),
         )
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            Button(
-                onClick = { onAnswer(false) },
-                modifier = Modifier.weight(1f).height(56.dp),
+            AnswerButton(
+                text = "모름",
+                selected = result == false,
+                onClick = { submit(false) },
+                modifier = Modifier.weight(1f),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
-            ) { Text("모름") }
-            Button(
-                onClick = { onAnswer(true) },
-                modifier = Modifier.weight(1f).height(56.dp),
-            ) { Text("알고있음") }
+            )
+            AnswerButton(
+                text = "알고있음",
+                selected = result == true,
+                onClick = { submit(true) },
+                modifier = Modifier.weight(1f),
+                colors = ButtonDefaults.buttonColors(),
+            )
         }
     }
 }
+
+/** 누르는 동안 눌리고, 선택되면 살짝 커지는 응답 버튼. */
+@Composable
+private fun AnswerButton(
+    text: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    colors: ButtonColors,
+) {
+    val interaction = remember { MutableInteractionSource() }
+    val pressed by interaction.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = when {
+            pressed -> 0.92f
+            selected -> 1.08f
+            else -> 1f
+        },
+        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium),
+        label = "buttonScale",
+    )
+    Button(
+        onClick = onClick,
+        modifier = modifier.height(56.dp).graphicsLayer {
+            scaleX = scale
+            scaleY = scale
+        },
+        colors = colors,
+        interactionSource = interaction,
+    ) { Text(text) }
+}
+
+private const val ANSWER_FEEDBACK_MS = 220L
