@@ -70,7 +70,8 @@ fun HomeHeader(stats: Stats, modifier: Modifier = Modifier) {
 
 private fun speech(stats: Stats, stage: MascotStage, goalReached: Boolean): String = when {
     stats.totalKnown == 0 -> "같이 외워볼까? 알고있음을 누르면 내가 자라!"
-    goalReached -> "오늘 목표 달성! 최고야 🎉"
+    // 마지막 단어와 이모지 사이는 줄바꿈이 안 되는 공백(NBSP)이라 이모지만 다음 줄로 떨어지지 않는다.
+    goalReached -> "목표 달성! 최고야 🎉"
     stats.todayAnswered == 0 && stats.streak > 0 -> "오늘도 시작해볼까? ${stats.streak}일째 이어가는 중!"
     stats.todayAnswered == 0 -> "오늘 첫 카드를 넘겨볼까?"
     stage == MascotStage.KING -> "역시 암기왕! 조금만 더!"
