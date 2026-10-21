@@ -18,11 +18,18 @@ data class StudyUiState(
     val loading: Boolean = true,
     val deckName: String = "",
     val current: CardWithProgress? = null,
-    val flipped: Boolean = false,
     val remaining: Int = 0,
+    /** 이번 라운드를 시작할 때 큐에 있던 카드 수. 진행 막대의 분모. */
+    val total: Int = 0,
+    /** 응답 횟수(모름으로 다시 나온 카드는 여러 번 센다). 카드 전환 애니메이션의 키로도 쓴다. */
     val answered: Int = 0,
+    /** 이번 라운드에서 알고있음으로 넘긴 카드 수. 카드마다 한 번만 센다. */
+    val sessionKnown: Int = 0,
+    val sessionUnknown: Int = 0,
+    /** 마지막 응답. 카드가 넘어가는 방향을 정한다. */
+    val lastAnswerKnown: Boolean = true,
     val frontSide: FrontSide = FrontSide.TERM,
-    /** 라운드가 새로 시작됐을 때 등 한 번 보여줄 안내. */
+    /** 한 번 보여줄 안내(스낵바용). */
     val notice: String? = null,
     /** 큐가 비어서 더 볼 카드가 없는 상태. */
     val finished: Boolean = false,
@@ -48,7 +55,7 @@ class StudyViewModel(app: Application, private val deckId: Long) : AndroidViewMo
         var notice: String? = null
         var built = buildQueue(cards)
 
-        // 모름만 반복: 전부 알고있음이면 처음부터 다시 시작한다.
+        // 모름만 반복: 전부 알고있음인 채로 열면 처음부터 다시 시작한다.
         if (built.isEmpty() && settings.mode == ReviewMode.UNKNOWN_ONLY && StudyQueue.isRoundComplete(cards)) {
             repository.resetRound(deckId)
             cards = repository.getCards(deckId)
@@ -61,6 +68,7 @@ class StudyViewModel(app: Application, private val deckId: Long) : AndroidViewMo
             loading = false,
             deckName = deck?.name.orEmpty(),
             emptyDeck = cards.isEmpty(),
+            total = built.size,
             notice = notice,
         ).withHead()
     }
@@ -68,15 +76,11 @@ class StudyViewModel(app: Application, private val deckId: Long) : AndroidViewMo
     private fun buildQueue(cards: List<CardWithProgress>) =
         StudyQueue.build(cards, settings.mode, settings.order, System.currentTimeMillis())
 
-    fun flip() {
-        _state.value = _state.value.let { it.copy(flipped = !it.flipped) }
-    }
-
     /** 단어→뜻 / 뜻→단어를 바로 바꾼다. 다음에 열 때도 유지되도록 설정에도 저장한다. */
     fun toggleFrontSide() {
         val next = if (_state.value.frontSide == FrontSide.TERM) FrontSide.MEANING else FrontSide.TERM
         settingsStore.update { it.copy(frontSide = next) }
-        _state.value = _state.value.copy(frontSide = next, flipped = false)
+        _state.value = _state.value.copy(frontSide = next)
     }
 
     fun noticeShown() {
@@ -88,19 +92,39 @@ class StudyViewModel(app: Application, private val deckId: Long) : AndroidViewMo
         val updated = Scheduler.review(card.progress, known, settings.mode, System.currentTimeMillis())
         // 모름은 같은 세션 끝에 다시 넣어, 알고있음으로 답할 때까지 반복한다.
         if (!known) queue.addLast(card.copy(progress = updated))
-        _state.value = _state.value.copy(answered = _state.value.answered + 1, flipped = false).withHead()
-        viewModelScope.launch {
-            repository.saveProgress(updated)
-            if (queue.isEmpty() && settings.mode == ReviewMode.UNKNOWN_ONLY) restartRound()
-        }
+        val s = _state.value
+        _state.value = s.copy(
+            answered = s.answered + 1,
+            sessionKnown = s.sessionKnown + if (known) 1 else 0,
+            sessionUnknown = s.sessionUnknown + if (known) 0 else 1,
+            lastAnswerKnown = known,
+        ).withHead()
+        viewModelScope.launch { repository.saveProgress(updated) }
     }
 
-    /** 모름만 반복에서 마지막 카드까지 알고있음으로 넘기면 라운드를 초기화하고 다시 시작한다. */
-    private suspend fun restartRound() {
-        repository.resetRound(deckId)
-        val built = buildQueue(repository.getCards(deckId))
-        queue.addAll(built)
-        _state.value = _state.value.copy(notice = "한 바퀴 끝! 처음부터 다시 시작해요").withHead()
+    /**
+     * 처음부터 다시: 라운드 표시를 초기화하고 덱의 모든 카드로 새 큐를 만든다.
+     * SM-2 모드에서도 복습 시기와 상관없이 전부 다시 보며, 응답은 평소처럼 진행 기록에 반영된다.
+     */
+    fun restart() {
+        viewModelScope.launch {
+            repository.resetRound(deckId)
+            val all = StudyQueue.build(
+                repository.getCards(deckId),
+                ReviewMode.UNKNOWN_ONLY,
+                settings.order,
+                System.currentTimeMillis(),
+            )
+            queue.clear()
+            queue.addAll(all)
+            _state.value = _state.value.copy(
+                total = all.size,
+                answered = 0,
+                sessionKnown = 0,
+                sessionUnknown = 0,
+                lastAnswerKnown = true,
+            ).withHead()
+        }
     }
 
     private fun StudyUiState.withHead() = copy(
