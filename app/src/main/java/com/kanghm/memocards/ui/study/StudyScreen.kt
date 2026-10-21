@@ -24,6 +24,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -67,6 +68,11 @@ fun StudyScreen(deckId: Long, onBack: () -> Unit) {
                     IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "뒤로") }
                 },
                 actions = {
+                    if (!state.loading && !state.emptyDeck) {
+                        TextButton(onClick = viewModel::toggleFrontSide) {
+                            Text(if (state.frontSide == FrontSide.TERM) "단어→뜻" else "뜻→단어")
+                        }
+                    }
                     if (!state.loading && !state.finished) {
                         Text("남은 ${state.remaining}장", modifier = Modifier.padding(end = 16.dp))
                     }

@@ -31,7 +31,8 @@ data class StudyUiState(
 
 class StudyViewModel(app: Application, private val deckId: Long) : AndroidViewModel(app) {
     private val repository = (app as MemoApp).repository
-    private val settings = (app as MemoApp).settings.state.value
+    private val settingsStore = (app as MemoApp).settings
+    private val settings = settingsStore.state.value
 
     private val queue = ArrayDeque<CardWithProgress>()
     private val _state = MutableStateFlow(StudyUiState(frontSide = settings.frontSide))
@@ -69,6 +70,13 @@ class StudyViewModel(app: Application, private val deckId: Long) : AndroidViewMo
 
     fun flip() {
         _state.value = _state.value.let { it.copy(flipped = !it.flipped) }
+    }
+
+    /** 단어→뜻 / 뜻→단어를 바로 바꾼다. 다음에 열 때도 유지되도록 설정에도 저장한다. */
+    fun toggleFrontSide() {
+        val next = if (_state.value.frontSide == FrontSide.TERM) FrontSide.MEANING else FrontSide.TERM
+        settingsStore.update { it.copy(frontSide = next) }
+        _state.value = _state.value.copy(frontSide = next, flipped = false)
     }
 
     fun noticeShown() {
