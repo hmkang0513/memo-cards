@@ -1,0 +1,71 @@
+{
+  "version": 1,
+  "decks": [
+    {
+      "name": "Java 테스트 덱",
+      "source": "language/java/김영한의 실전 자바 - 고급 1편/4.멀티태스킹과 멀티프로세싱.md (+ 기본 문법 일반 지식)",
+      "cards": [
+        {
+          "uid": "test-java/멀티태스킹",
+          "front": "멀티태스킹(multitasking)이란?",
+          "back": "단일 CPU 코어가 여러 작업을 동시에 수행하는 것처럼 보이게 하는 것. 소프트웨어(운영체제) 관점이며 CPU 시간을 분할해 각 작업에 할당한다.",
+          "extra": "출처: 노트 4.멀티태스킹과 멀티프로세싱"
+        },
+        {
+          "uid": "test-java/멀티프로세싱",
+          "front": "멀티프로세싱(multiprocessing)이란?",
+          "back": "둘 이상의 프로세서(CPU 코어)를 사용해 여러 작업을 동시에 처리하는 것. 하드웨어 관점이며 하드웨어 기반으로 성능을 높인다.",
+          "extra": "출처: 노트 4.멀티태스킹과 멀티프로세싱"
+        },
+        {
+          "uid": "test-java/시분할",
+          "front": "시분할(time sharing) 기법이란?",
+          "back": "CPU가 매우 짧은 시간(대략 10ms)씩 프로그램을 번갈아 실행해 마치 동시에 실행되는 것처럼 느끼게 하는 기법.",
+          "extra": "출처: 노트 4.멀티태스킹과 멀티프로세싱"
+        },
+        {
+          "uid": "test-java/스케줄링",
+          "front": "스케줄링(Scheduling)이란?",
+          "back": "어떤 프로그램이 CPU에서 얼마만큼 실행될지 운영체제가 결정하는 것. 단순 시간 분배가 아니라 우선순위와 최적화 기법을 사용한다.",
+          "extra": "출처: 노트 4.멀티태스킹과 멀티프로세싱"
+        },
+        {
+          "uid": "test-java/정수 나눗셈",
+          "front": "다음 코드의 출력은?\n\nint a = 10 / 3;\nSystem.out.println(a);",
+          "back": "3",
+          "extra": "int끼리 나누면 소수점 이하가 버려진다. (노트 근거 없는 Java 기본 지식)"
+        },
+        {
+          "uid": "test-java/문자열 더하기 1",
+          "front": "다음 코드의 출력은?\n\nSystem.out.println(\"a\" + 1 + 2);",
+          "back": "a12",
+          "extra": "왼쪽부터 계산: \"a\"+1 → \"a1\", 다시 +2 → \"a12\". (Java 기본 지식)"
+        },
+        {
+          "uid": "test-java/문자열 더하기 2",
+          "front": "다음 코드의 출력은?\n\nSystem.out.println(1 + 2 + \"a\");",
+          "back": "3a",
+          "extra": "1+2가 먼저 int로 계산돼 3이 되고, 그다음 문자열과 연결된다. (Java 기본 지식)"
+        },
+        {
+          "uid": "test-java/문자열 비교",
+          "front": "다음 코드의 출력은?\n\nString s1 = \"hi\";\nString s2 = new String(\"hi\");\nSystem.out.println(s1 == \"hi\");\nSystem.out.println(s2 == \"hi\");",
+          "back": "true\nfalse",
+          "extra": "리터럴은 문자열 풀의 같은 객체를 가리키고, new String은 새 객체를 만든다. 내용 비교는 equals. (Java 기본 지식)"
+        },
+        {
+          "uid": "test-java/byte 오버플로",
+          "front": "다음 코드의 출력은?\n\nbyte b = 127;\nb++;\nSystem.out.println(b);",
+          "back": "-128",
+          "extra": "byte 범위(-128~127)를 넘으면 오버플로로 한 바퀴 돈다. (Java 기본 지식)"
+        },
+        {
+          "uid": "test-java/증감 연산",
+          "front": "다음 코드의 출력은?\n\nint x = 5;\nint y = x++ + ++x;\nSystem.out.println(y);",
+          "back": "12",
+          "extra": "x++는 5를 쓰고 x가 6이 되고, ++x는 7로 증가해 7을 쓴다. 5 + 7 = 12. (Java 기본 지식)"
+        }
+      ]
+    }
+  ]
+}
