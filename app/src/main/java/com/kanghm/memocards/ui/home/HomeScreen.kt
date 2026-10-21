@@ -16,6 +16,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.FileUpload
 import androidx.compose.material.icons.filled.Settings
@@ -54,10 +55,12 @@ fun HomeScreen(
     onStudy: (Long) -> Unit,
     onCardList: (Long) -> Unit,
     onSettings: () -> Unit,
+    onStickers: () -> Unit,
     viewModel: HomeViewModel = viewModel(),
 ) {
     val decks by viewModel.decks.collectAsStateWithLifecycle()
     val message by viewModel.message.collectAsStateWithLifecycle()
+    val stats by viewModel.stats.collectAsStateWithLifecycle()
     val snackbar = remember { SnackbarHostState() }
     var deleteTarget by remember { mutableStateOf<DeckSummary?>(null) }
 
@@ -81,6 +84,9 @@ fun HomeScreen(
             TopAppBar(
                 title = { Text("🐰 암기카드", fontWeight = FontWeight.Bold) },
                 actions = {
+                    IconButton(onClick = onStickers) {
+                        Icon(Icons.Filled.EmojiEvents, contentDescription = "스티커북")
+                    }
                     IconButton(onClick = { importLauncher.launch(arrayOf("application/json", "text/*", "*/*")) }) {
                         Icon(Icons.Filled.FileUpload, contentDescription = "카드 JSON 가져오기")
                     }
@@ -95,32 +101,29 @@ fun HomeScreen(
         },
         snackbarHost = { SnackbarHost(snackbar) },
     ) { padding ->
-        if (decks.isEmpty()) {
-            Box(Modifier.fillMaxSize().padding(padding).padding(24.dp), contentAlignment = Alignment.Center) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("🐣", fontSize = 64.sp)
+        LazyColumn(
+            modifier = Modifier.fillMaxSize().padding(padding),
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            item { HomeHeader(stats) }
+            if (decks.isEmpty()) {
+                item {
                     Text(
                         "아직 카드가 없어요.\n위쪽 가져오기 버튼으로 카드 JSON 파일을 불러오세요.",
                         style = MaterialTheme.typography.bodyLarge,
                         textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(top = 12.dp),
+                        modifier = Modifier.fillMaxWidth().padding(top = 32.dp),
                     )
                 }
             }
-        } else {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize().padding(padding),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                items(decks, key = { it.id }) { deck ->
-                    DeckItem(
-                        deck = deck,
-                        onClick = { onStudy(deck.id) },
-                        onList = { onCardList(deck.id) },
-                        onDelete = { deleteTarget = deck },
-                    )
-                }
+            items(decks, key = { it.id }) { deck ->
+                DeckItem(
+                    deck = deck,
+                    onClick = { onStudy(deck.id) },
+                    onList = { onCardList(deck.id) },
+                    onDelete = { deleteTarget = deck },
+                )
             }
         }
     }

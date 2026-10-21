@@ -6,6 +6,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.kanghm.memocards.MemoApp
 import com.kanghm.memocards.data.DeckSummary
+import com.kanghm.memocards.data.Stats
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,6 +28,9 @@ class HomeViewModel(app: Application) : AndroidViewModel(app) {
     val decks: StateFlow<List<DeckSummary>> = clock
         .flatMapLatest { repository.observeSummaries(it) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    val stats: StateFlow<Stats> = repository.observeStats()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), Stats())
 
     /** 한 번 보여주고 비우는 안내 메시지(스낵바용). */
     val message = MutableStateFlow<String?>(null)

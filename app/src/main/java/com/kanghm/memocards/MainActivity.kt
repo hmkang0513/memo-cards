@@ -12,6 +12,7 @@ import androidx.navigation.compose.rememberNavController
 import com.kanghm.memocards.ui.cards.CardListScreen
 import com.kanghm.memocards.ui.home.HomeScreen
 import com.kanghm.memocards.ui.settings.SettingsScreen
+import com.kanghm.memocards.ui.stickers.StickerBookScreen
 import com.kanghm.memocards.ui.study.StudyScreen
 import com.kanghm.memocards.ui.theme.MemoTheme
 
@@ -34,12 +35,14 @@ private fun MemoNavHost() {
         composable("cards/{deckId}", arguments = listOf(navArgument("deckId") { type = NavType.LongType })) {
             CardListScreen(deckId = it.arguments!!.getLong("deckId"), onBack = { nav.popBackStack() })
         }
+        composable("stickers") { StickerBookScreen(onBack = { nav.popBackStack() }) }
         composable("settings") { SettingsScreen(onBack = { nav.popBackStack() }) }
         composable("home") {
             HomeScreen(
                 onStudy = { nav.navigate("study/$it") },
                 onCardList = { nav.navigate("cards/$it") },
                 onSettings = { nav.navigate("settings") },
+                onStickers = { nav.navigate("stickers") },
             )
         }
     }
