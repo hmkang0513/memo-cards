@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "decks": [
+    {
+      "name": "일본어 단어 (샘플)",
+      "source": "외국어/일본어/勉強.md",
+      "cards": [
+        {
+          "uid": "외국어/일본어/勉強.md",
+          "front": "勉強",
+          "back": "공부, 학습 (勉強する = 공부하다)",
+          "reading": "べんきょう",
+          "extra": "毎日日本語を勉強しています。 / 매일 일본어를 공부하고 있습니다."
+        }
+      ]
+    },
+    {
+      "name": "영어 표현 (샘플)",
+      "source": "외국어/영어/break the ice.md",
+      "cards": [
+        {
+          "uid": "외국어/영어/break the ice.md",
+          "front": "break the ice",
+          "back": "어색한 분위기를 깨다, 대화의 물꼬를 트다"
+        }
+      ]
+    }
+  ]
+}
