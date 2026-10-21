@@ -33,37 +33,43 @@
           "uid": "test-java/정수 나눗셈",
           "front": "다음 코드의 출력은?\n\nint a = 10 / 3;\nSystem.out.println(a);",
           "back": "3",
-          "extra": "int끼리 나누면 소수점 이하가 버려진다. (노트 근거 없는 Java 기본 지식)"
+          "extra": "int끼리 나누면 소수점 이하가 버려진다. (노트 근거 없는 Java 기본 지식)",
+          "oneWay": true
         },
         {
           "uid": "test-java/문자열 더하기 1",
           "front": "다음 코드의 출력은?\n\nSystem.out.println(\"a\" + 1 + 2);",
           "back": "a12",
-          "extra": "왼쪽부터 계산: \"a\"+1 → \"a1\", 다시 +2 → \"a12\". (Java 기본 지식)"
+          "extra": "왼쪽부터 계산: \"a\"+1 → \"a1\", 다시 +2 → \"a12\". (Java 기본 지식)",
+          "oneWay": true
         },
         {
           "uid": "test-java/문자열 더하기 2",
           "front": "다음 코드의 출력은?\n\nSystem.out.println(1 + 2 + \"a\");",
           "back": "3a",
-          "extra": "1+2가 먼저 int로 계산돼 3이 되고, 그다음 문자열과 연결된다. (Java 기본 지식)"
+          "extra": "1+2가 먼저 int로 계산돼 3이 되고, 그다음 문자열과 연결된다. (Java 기본 지식)",
+          "oneWay": true
         },
         {
           "uid": "test-java/문자열 비교",
           "front": "다음 코드의 출력은?\n\nString s1 = \"hi\";\nString s2 = new String(\"hi\");\nSystem.out.println(s1 == \"hi\");\nSystem.out.println(s2 == \"hi\");",
           "back": "true\nfalse",
-          "extra": "리터럴은 문자열 풀의 같은 객체를 가리키고, new String은 새 객체를 만든다. 내용 비교는 equals. (Java 기본 지식)"
+          "extra": "리터럴은 문자열 풀의 같은 객체를 가리키고, new String은 새 객체를 만든다. 내용 비교는 equals. (Java 기본 지식)",
+          "oneWay": true
         },
         {
           "uid": "test-java/byte 오버플로",
           "front": "다음 코드의 출력은?\n\nbyte b = 127;\nb++;\nSystem.out.println(b);",
           "back": "-128",
-          "extra": "byte 범위(-128~127)를 넘으면 오버플로로 한 바퀴 돈다. (Java 기본 지식)"
+          "extra": "byte 범위(-128~127)를 넘으면 오버플로로 한 바퀴 돈다. (Java 기본 지식)",
+          "oneWay": true
         },
         {
           "uid": "test-java/증감 연산",
           "front": "다음 코드의 출력은?\n\nint x = 5;\nint y = x++ + ++x;\nSystem.out.println(y);",
           "back": "12",
-          "extra": "x++는 5를 쓰고 x가 6이 되고, ++x는 7로 증가해 7을 쓴다. 5 + 7 = 12. (Java 기본 지식)"
+          "extra": "x++는 5를 쓰고 x가 6이 되고, ++x는 7로 증가해 7을 쓴다. 5 + 7 = 12. (Java 기본 지식)",
+          "oneWay": true
         }
       ]
     }

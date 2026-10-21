@@ -24,6 +24,8 @@ data class CardJson(
     val back: String,
     val reading: String? = null,
     val extra: String? = null,
+    /** true면 방향을 바꿔 보지 않고 항상 front가 앞면. 코드 문제 카드에 쓴다. */
+    val oneWay: Boolean = false,
     /** 백업 내보내기에만 채워진다. 카드 가져오기에서는 없어도 된다. */
     val progress: ProgressJson? = null,
 )

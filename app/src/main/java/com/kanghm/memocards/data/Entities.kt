@@ -1,5 +1,6 @@
 package com.kanghm.memocards.data
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
@@ -35,6 +36,8 @@ data class CardEntity(
     val extra: String? = null,
     /** JSON에 적힌 순서. "순서대로" 보기에 사용한다. */
     val position: Int = 0,
+    /** true면 앞면 방향 설정(단어→뜻/뜻→단어)과 상관없이 항상 front를 먼저 보여준다. 코드 문제처럼 방향이 바뀌면 안 되는 카드용. */
+    @ColumnInfo(defaultValue = "0") val oneWay: Boolean = false,
 )
 
 /** 카드별 학습 진행 상태 (SM-2 값 + 누적 횟수). */

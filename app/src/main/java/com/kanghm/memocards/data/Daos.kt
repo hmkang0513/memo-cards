@@ -77,7 +77,7 @@ interface CardDao {
 
     companion object {
         const val CARDS_WITH_PROGRESS = """
-            SELECT c.uid, c.deckId, c.front, c.back, c.reading, c.extra, c.position,
+            SELECT c.uid, c.deckId, c.front, c.back, c.reading, c.extra, c.position, c.oneWay,
                    p.cardUid AS p_cardUid, p.knownCount AS p_knownCount, p.unknownCount AS p_unknownCount,
                    p.ease AS p_ease, p.intervalDays AS p_intervalDays, p.repetitions AS p_repetitions,
                    p.dueAt AS p_dueAt, p.lastReviewedAt AS p_lastReviewedAt, p.lastKnown AS p_lastKnown,

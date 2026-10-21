@@ -62,7 +62,7 @@ class DeckRepository(private val db: AppDatabase) {
                 val deckId = deckDao.findByName(deckJson.name)?.id
                     ?: deckDao.insert(DeckEntity(name = deckJson.name, source = deckJson.source))
                 deckJson.cards.forEachIndexed { index, c ->
-                    val entity = CardEntity(c.uid, deckId, c.front, c.back, c.reading, c.extra, index)
+                    val entity = CardEntity(c.uid, deckId, c.front, c.back, c.reading, c.extra, index, c.oneWay)
                     if (cardDao.insertIfAbsent(entity) == -1L) {
                         cardDao.update(entity)
                         updated++
@@ -89,6 +89,7 @@ class DeckRepository(private val db: AppDatabase) {
                         back = cp.card.back,
                         reading = cp.card.reading,
                         extra = cp.card.extra,
+                        oneWay = cp.card.oneWay,
                         progress = cp.progress.toJson(),
                     )
                 },

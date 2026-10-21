@@ -67,7 +67,10 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -188,7 +191,7 @@ private fun StudyBody(state: StudyUiState, card: CardWithProgress, stage: Mascot
     Column(Modifier.fillMaxSize()) {
         LinearProgressIndicator(progress = { progress }, modifier = Modifier.fillMaxWidth())
         Row(
-            Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
+            Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Mascot(mood = mood, stage = stage, size = 76.dp)
@@ -408,12 +411,37 @@ private fun Stamp(text: String, color: Color, rotation: Float, alpha: Float, mod
     )
 }
 
+/**
+ * 글 길이에 맞춰 글자 크기를 낮춘다. 줄바꿈이 들어 있으면 코드로 보고 고정폭 글꼴로 왼쪽 정렬한다.
+ * (``` 코드 블록을 제대로 해석하는 건 아니고, 우선 코드가 깨져 보이지 않게 하는 정도다.)
+ */
+@Composable
+private fun faceStyle(text: String, large: Boolean): TextStyle {
+    if ('\n' in text) {
+        return TextStyle(fontFamily = FontFamily.Monospace, fontSize = if (large) 18.sp else 16.sp, lineHeight = 26.sp)
+    }
+    val t = MaterialTheme.typography
+    val len = text.length
+    return if (large) {
+        when {
+            len <= 14 -> t.headlineLarge
+            len <= 40 -> t.headlineMedium
+            else -> t.headlineSmall
+        }
+    } else {
+        if (len <= 40) t.headlineSmall else t.titleLarge
+    }
+}
+
+private fun alignFor(text: String): TextAlign = if ('\n' in text) TextAlign.Start else TextAlign.Center
+
 /** 카드 앞면/뒷면 내용. 뒷면은 Y축 180도 돌아간 상태라 글자가 뒤집히지 않게 한 번 더 돌려준다. */
 @Composable
 private fun CardFace(card: CardWithProgress, frontSide: FrontSide, showBack: Boolean) {
     val c = card.card
     // 앞면 선택에 따라 단어/뜻 중 먼저 보이는 쪽이 달라진다. 읽기(후리가나)는 단어와 함께 보인다.
-    val termFirst = frontSide == FrontSide.TERM
+    // oneWay 카드(코드 문제 등)는 방향 설정과 상관없이 항상 front가 앞면이다.
+    val termFirst = frontSide == FrontSide.TERM || c.oneWay
     val shown = if (termFirst) c.front else c.back
     val hidden = if (termFirst) c.back else c.front
 
@@ -423,7 +451,7 @@ private fun CardFace(card: CardWithProgress, frontSide: FrontSide, showBack: Boo
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Text(shown, style = MaterialTheme.typography.headlineLarge, textAlign = TextAlign.Center)
+            Text(shown, style = faceStyle(shown, large = true), textAlign = alignFor(shown))
             if (termFirst && !c.reading.isNullOrBlank()) {
                 Text(c.reading, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
             }
@@ -440,10 +468,12 @@ private fun CardFace(card: CardWithProgress, frontSide: FrontSide, showBack: Boo
                 shown,
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
+                textAlign = alignFor(shown),
+                maxLines = 5,
+                overflow = TextOverflow.Ellipsis,
             )
             Box(Modifier.height(16.dp))
-            Text(hidden, style = MaterialTheme.typography.headlineSmall, textAlign = TextAlign.Center)
+            Text(hidden, style = faceStyle(hidden, large = false), textAlign = alignFor(hidden))
             if (!termFirst && !c.reading.isNullOrBlank()) {
                 Text(c.reading, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
             }
